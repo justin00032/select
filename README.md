@@ -63,7 +63,7 @@ GitHub: [github.com/justin00032]
 
 Email: [justinchinaemerem86@.com]
 
-Portfolio: http://127.0.0.1:3000/porfolio.html]
+Portfolio: [http://127.0.0.1:3000/porfolio.html]
 
 Thank you for checking out the Simple Geographical Location Finder Plugin!
 
