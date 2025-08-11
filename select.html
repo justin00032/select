@@ -1,0 +1,805 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>example</title>
+</head>
+<body>
+    <!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Geographical Location Finder</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+  <style>
+    :root {
+      --primary-color: #4361ee;
+      --primary-light: #eef2ff;
+      --hover-color: #f8f9fa;
+      --border-color: #e9ecef;
+      --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+      --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+      --radius-sm: 6px;
+      --radius-md: 8px;
+      --radius-lg: 12px;
+      --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      --text-primary: #1a1a1a;
+      --text-secondary: #6b7280;
+      --success-color: #10b981;
+      --error-color: #ef4444;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      line-height: 1.5;
+      color: var(--text-primary);
+      background-color: #f9fafb;
+      min-height: 100vh;
+      padding: 2rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 800px;
+      background: white;
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-md);
+      padding: 2.5rem;
+      margin-top: 1.5rem;
+      transition: var(--transition);
+      animation: fadeInUp 0.5s ease-out;
+    }
+
+    @media (max-width: 640px) {
+      body {
+        padding: 1rem;
+      }
+      
+      .container {
+        padding: 1.5rem;
+      }
+    }
+
+    h1 {
+      color: var(--primary-color);
+      font-size: 2rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+      text-align: center;
+      background: linear-gradient(90deg, #4361ee, #3a0ca3);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      position: relative;
+      display: inline-block;
+    }
+
+    h1::after {
+      content: '';
+      position: absolute;
+      bottom: -8px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 60px;
+      height: 4px;
+      background: linear-gradient(90deg, #4361ee, #3a0ca3);
+      border-radius: 2px;
+    }
+
+    .subtitle {
+      color: var(--text-secondary);
+      text-align: center;
+      margin-bottom: 2rem;
+      font-size: 1rem;
+    }
+
+    .form-group {
+      margin-bottom: 1.75rem;
+      position: relative;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: 500;
+      color: var(--text-primary);
+      font-size: 0.9375rem;
+    }
+
+    .input-container {
+      position: relative;
+    }
+
+    input {
+      width: 100%;
+      padding: 0.875rem 1rem;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-sm);
+      font-size: 0.9375rem;
+      transition: var(--transition);
+      background-color: white;
+      color: var(--text-primary);
+    }
+
+    input:focus {
+      outline: none;
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.15);
+    }
+
+    input:disabled {
+      background-color: #f3f4f6;
+      cursor: not-allowed;
+    }
+
+    .input-icon {
+      position: absolute;
+      right: 1rem;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-secondary);
+      pointer-events: none;
+    }
+
+    .suggestion-box {
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-sm);
+      max-height: 300px;
+      overflow-y: auto;
+      position: absolute;
+      background: white;
+      z-index: 100;
+      width: 100%;
+      box-shadow: var(--shadow-lg);
+      margin-top: 0.5rem;
+      opacity: 0;
+      transform: translateY(-10px);
+      visibility: hidden;
+      transition: var(--transition);
+    }
+
+    .suggestion-box.visible {
+      opacity: 1;
+      transform: translateY(0);
+      visibility: visible;
+    }
+
+    .suggestion-item {
+      padding: 0.75rem 1rem;
+      cursor: pointer;
+      transition: var(--transition);
+      font-size: 0.9375rem;
+      display: flex;
+      align-items: center;
+    }
+
+    .suggestion-item:hover {
+      background: var(--hover-color);
+    }
+
+    .suggestion-item.highlighted {
+      background: var(--primary-light);
+      color: var(--primary-color);
+    }
+
+    .suggestion-item .flag {
+      width: 20px;
+      height: 15px;
+      margin-right: 10px;
+      object-fit: cover;
+      border-radius: 2px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .loading {
+      color: var(--text-secondary);
+      padding: 1rem;
+      text-align: center;
+      font-size: 0.875rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .loading::after {
+      content: '';
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border: 2px solid var(--border-color);
+      border-top-color: var(--primary-color);
+      border-radius: 50%;
+      margin-left: 8px;
+      animation: spin 0.8s linear infinite;
+    }
+
+    .status-indicator {
+      position: absolute;
+      right: 1rem;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background-color: var(--border-color);
+      transition: var(--transition);
+    }
+
+    .status-indicator.active {
+      background-color: var(--success-color);
+      box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2);
+    }
+
+    .progress-tracker {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 2rem;
+      position: relative;
+    }
+
+    .progress-tracker::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background-color: var(--border-color);
+      z-index: 0;
+    }
+
+    .progress-step {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .progress-step-number {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background-color: white;
+      border: 2px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+      color: var(--text-secondary);
+      transition: var(--transition);
+    }
+
+    .progress-step.active .progress-step-number {
+      border-color: var(--primary-color);
+      background-color: var(--primary-color);
+      color: white;
+      box-shadow: 0 0 0 4px rgba(67, 97, 238, 0.2);
+    }
+
+    .progress-step.completed .progress-step-number {
+      border-color: var(--success-color);
+      background-color: var(--success-color);
+      color: white;
+    }
+
+    .progress-step-label {
+      margin-top: 0.5rem;
+      font-size: 0.75rem;
+      color: var(--text-secondary);
+      font-weight: 500;
+      text-align: center;
+    }
+
+    .progress-step.active .progress-step-label {
+      color: var(--primary-color);
+    }
+
+    .progress-step.completed .progress-step-label {
+      color: var(--success-color);
+    }
+
+    /* Animations */
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    @keyframes pulse {
+      0%, 100% {
+        opacity: 1;
+      }
+      50% {
+        opacity: 0.5;
+      }
+    }
+
+    /* Scrollbar styling */
+    .suggestion-box::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .suggestion-box::-webkit-scrollbar-track {
+      background: #f1f1f1;
+      border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+    }
+
+    .suggestion-box::-webkit-scrollbar-thumb {
+      background: #c1c1c1;
+      border-radius: 3px;
+    }
+
+    .suggestion-box::-webkit-scrollbar-thumb:hover {
+      background: #a8a8a8;
+    }
+
+    /* Country flags (would be implemented with actual flag images in production) */
+    .flag {
+      background-color: #eee;
+      display: inline-block;
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 480px) {
+      h1 {
+        font-size: 1.5rem;
+      }
+      
+      .progress-step-label {
+        display: none;
+      }
+      
+      .progress-tracker {
+        margin-bottom: 1.5rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <h1 class="animate__animated animate__fadeIn">Geographical Location Finder plugin</h1>
+  <p class="subtitle animate__animated animate__fadeIn animate__delay-1s">Select your location from the dropdown menus</p>
+  
+  <div class="container">
+    <div class="progress-tracker">
+      <div class="progress-step" id="step-country">
+        <div class="progress-step-number">1</div>
+        <div class="progress-step-label">Country</div>
+      </div>
+      <div class="progress-step" id="step-state">
+        <div class="progress-step-number">2</div>
+        <div class="progress-step-label">State/Region</div>
+      </div>
+      <div class="progress-step" id="step-lga">
+        <div class="progress-step-number">3</div>
+        <div class="progress-step-label">Local Area</div>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label for="country">Country</label>
+      <div class="input-container">
+        <input type="text" id="country" placeholder="Start typing a country..." autocomplete="off">
+        <div class="input-icon"></div>
+        <div class="status-indicator" id="country-status"></div>
+        <div id="countryList" class="suggestion-box"></div>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label for="state">State/Region</label>
+      <div class="input-container">
+        <input type="text" id="state" placeholder="Select country first" autocomplete="off" disabled>
+        <div class="input-icon"></div>
+        <div class="status-indicator" id="state-status"></div>
+        <div id="stateList" class="suggestion-box"></div>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label for="lga">Local Government Area</label>
+      <div class="input-container">
+        <input type="text" id="lga" placeholder="Select state first" autocomplete="off" disabled>
+        <div class="input-icon"></div>
+        <div class="status-indicator" id="lga-status"></div>
+        <div id="lgaList" class="suggestion-box"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    class LocationFinder {
+      constructor() {
+        this.data = {
+          "Nigeria": {
+            "Lagos": ["Agege", "Ajeromi-Ifelodun", "Alimosho", "Amuwo-Odofin", "Apapa", "Badagry", "Epe", "Eti-Osa", "Ibeju-Lekki", "Ifako-Ijaye", "Ikeja", "Ikorodu", "Kosofe", "Lagos Island", "Lagos Mainland", "Mushin", "Ojo", "Oshodi-Isolo", "Shomolu", "Surulere"],
+            "Abuja": ["Abaji Area Council", "Abuja Municipal Area Council (AMAC)", "Bwari Area Council", "Gwagwalada Area Council", "Kuje Area Council", "Kwali Area Council"],
+            "Imo": ["Aboh Mbaise", "Ahiazu Mbaise", "Ehime Mbano", "Ezinihitte Mbaise", "Ideato North", "Ideato South", "Ihitte/Uboma", "Ikeduru", "Isiala Mbano", "Isu", "Mbaitoli", "Ngor Okpala", "Njaba", "Nkwerre", "Nwangele", "Obowo", "Oguta", "Ohaji/Egbema", "Okigwe", "Onuimo", "Orlu", "Orsu", "Oru East", "Oru West", "Owerri Municipal", "Owerri North", "erri West "],
+            "Kano": ["Nasarawa", "Fagge", "Dala", "Kano Municipal"],
+            "Abia": ["Aba North", "Aba South", "Arochukwu", "Bende" ,"Ikwuano", "Isiala Ngwa North", "Isiala Ngwa South", "Isuikwuato", "Obi Ngwa", "Ohafia", "Osisioma Ngwa", "Ugwunagbo", "Ukwa East", "Ukwa West", "Umuahia North", "Umuahia South", "Umu Nneochi"],   
+            "Adamawa":["Demsa", "Fufore", "Ganye", "Girei", "Gombi", "Guyuk", "Hong", "Jada", "Lamurde", "Madagali", "Maiha", "Mayo-Belwa", "Michika", "Mubi North", "Mubi South", "Numan", "Shelleng", "Song", "Toungo", "Yola North", "Yola South"],
+            "Akwa Ibom":["Abak", "Eastern Obolo", "Eket", "Esit Eket", "Essien Udim", "Etim Ekpo", "Etinan", "Ibeno", "Ibesikpo Asutan", "Ibiono Ibom", "Ika", "Ikono", "Ikot Abasi", "Ikot Ekpene", "Ini", "Itu", "Mbo", "Mkpat-Enin", "Nsit-Atai", "Nsit-Ibom", "Nsit-Ubium", "Obot Akara", "Okobo", "Onna", "Oron", "Oruk Anam", "Udung-Uko", "Ukanafun", "Uruan", "Urue-Offong/Oruko", "Uyo"],
+            "Anambra": ["Aguata", "Anambra East", "Anambra West", "Anaocha", "Awka North", "Awka South", "Ayamelum", "Dunukofia", "Ekwusigo", "Idemili North", "Idemili South", "Ihiala", "Njikoka", "Nnewi North", "Nnewi South", "Ogbaru", "Onitsha North", "Onitsha South", "Orumba North", "Orumba South", "Oyi"],
+            "Bauchi" : ["Alkaleri", "Bauchi", "Bogoro", "Damban", "Darazo", "Dass", "Gamawa", "Ganjuwa", "Giade", "Itas/Gadau", "Jama'are", "Katagum", "Kirfi", "Misau", "Ningi", "Shira", "Tafawa Balewa", "Toro", "Warji", "Zaki"], 
+            "Bayelsa":["Brass", "Ekeremor", "Kolokuma/Opokuma", "Nembe", "Ogbia", "Sagbama", "Southern Ijaw", "Yenagoa"],
+            "Benue"  :["Ado", "Agatu", "Apa", "Buruku", "Gboko", "Guma", "Gwer East", "Gwer West", "Katsina-Ala", "Konshisha", "Kwande", "Logo", "Makurdi", "Obi", "Ogbadibo", "Ohimini", "Oju", "Okpokwu", "Otukpo", "Tarka", "Ukum", "Ushongo", "Vandeikya"],
+            "Borno" : ["Abadam", "Askira/Uba", "Bama", "Bayo", "Biu", "Chibok", "Damboa", "Dikwa", "Gubio", "Guzamala", "Gwoza", "Hawul", "Jere", "Kaga", "Kala/Balge", "Konduga", "Kukawa",  "Kwaya Kusar", "Mafa", "Magumeri", "Maiduguri", "Marte", "Mobbar", "Monguno", "Ngala", "Nganzai", "Shani"], 
+            "Cross River":["Akpabuyo", "Akampka", "Bakassi", "Bekwara", "Biase", "Boki", "Calabar Municipal", "Calabar South", "Etung", "Ikom", "Obanliku", "Obubra", "Obudu", "Odukpani", "Ogoja", "Yakurr", "Yala", "Bekwarra"],
+            "Delta": ["Aniocha North", "Aniocha South", "Bomadi", "Burutu", "Ethiope East", "Ethiope West", "Ika North East", "Ika South", "Isoko North", "Isoko South", "Ndokwa East", "Ndokwa West", "Okpe", "Oshimili North", "Oshimili South", "Patani", "Sapele", "Udu", "Ughelli North", "Ughelli South", "Ukwuani", "UVwie", "Warri North", "Warri South", "Warri South West"],
+            "Ebonyi": ["Abakaliki", "Afikpo North", "Afikpo South (Edda)", "Ebonyi", "Ezza North", "Ezza South", "Ikwo", "Ishielu", "Ivo", "Izzi", "Ohaozara", "Ohaukwu", "Onicha"], 
+            "Edo":["Esan Central", "Esan North-East", "Esan South-East", "Esan West" ,"Etsako Central", "Etsako East", "Etsako West", "Igueben", "Ikpoba-Okha", "Oredo", "Orhionmwon", "Ovia North-East" ,"Ovia South-West", "Owan East", "Owan West", "Uhunmwonde", "Akoko-Edo", "Ehor"],
+            "Ekiti":["Ado-Ekiti", "Efon", "Ekiti East", "Ekiti South-West" ,"Ekiti West" ,"Emure", "Aiyekire (Gbonyin)" ,"Ise/Orun", "Ido-Osi" ,"Ijero" , "Ikere", "Ikole", "Ilejemeje", "Irepodun/Ifelodun", "Moba", "Oye"],
+            "Enugu":["Aninri", "Awgu", "Enugu East", "Enugu North", "Enugu South", "Ezeagu", "Igbo Etiti", "Igbo Eze North", "Igbo Eze South", "Isi Uzo", "Nkanu East", "Nkanu West", "Nsukka", "Udenu", "Udi", "Uzo Uwani", "Oji River"],           "Gombe" :["Akko", "Balanga", "Billiri", "Dukku", "Funakaye","Gombe (the state capital)", "Kaltungo", "Kwami", "Nafada", "Shongom", "Yamaltu/Deba"],
+            "Jigawa":["Auyo", "Babura", "Biriniwa", "Birnin Kudu", "Buji", "Dutse", "Gagarawa", "Garki", "Gumel", "Guri", "Gwaram", "Jahun", "Kafin Hausa", "Kaugama", "Kazaure", "Kirikasamma", "Maigatari", "Malam Madori", "Miga", "Ringim", "Roni", "Sabon Birni", "Sule Tankarkar", "Taura", "Yankwashi", "Kiyawa", "Hadejia"],
+            "Kaduna":["Birnin Gwari", "Chikun", "Giwa", "Igabi","Ikara", "Jaba","Jema'a", "Kachia", "Kaduna North", "Kaduna South", "Kagarko", "Kajuru", "Kaura", "Kauru", "Kubau", "Kudan", "Lere", "Makarfi", "Sabon Gari", "Sanga", "Soba", "Zangon Kataf", "Zaria"],
+            "Kano" :["Ajingi", "Albasu", "Bagwai", "Bebeji", "Bichi", "Billiri", "Dala", "Dambatta", "Dawakin Kudu", "Dawakin Tofa", "Doguwa", "Fagge", "Gabasawa", "Garko", "Garun Mallam", "Gaya", "Gezawa", "Gwale", "Gwarzo", "Kabo", "Kano Municipal", "Karaye", "Kibiya", "Kiru", "Kumbotso", "Kunchi", "Kura", "Madobi", "Makoda", "Minjibir", "Nasarawa", "Rano", "Rimin Gado", "Rijiyar Lemo", "Sumaila", "Takai", "Tarauni", "Tofa", "Tsanyawa", "Tudun Wada", "Ungogo", "Warawa", "Wudil"], 
+            "Katsina":["Bakori", "Batagarawa", "Batsari", "Baure", "Bindawa", "Charanchi", "Dandume", "Danja", "Dan Musa", "Daura", "Dutsi", "Dutsin-Ma", "Faskari", "Funtua", "Ingawa", "Jibia", "Kafur", "Kaita", "Katsina", "Kurfi", "Kusada", "Mai'Adua", "Malumfashi", "Mani", "Mashi", "Matazu", "Musawa", "Rimi", "Sabuwa", "Safana", "Sandamu", "Zango"],
+            "Kogi": ["Adavi","Ajaokuta","Ankpa","Bassa", "Dekina", "Ibaji", "Idah", "Igalamela-Odolu", "Ijumu", "Kabba/Bunu", "Kogi (Koton Karfe)", "Lokoja", "Mopa-Muro", "Ofu", "Ogori/Magongo", "Okehi", "Okene", "Olamaboro", "Omala", "Yagba East", "Yagba West"],  
+            "Kebbi" :["Aleiro", "Arewa Dandi", "Argungu", "Augie", "Bagudo", "Birnin Kebbi", "Bunza", "Dandi", "Fakai", "Gwandu", "Jega", "Kalgo", "Koko/Besse", "Maiyama", "Ngaski", "Sakaba", "Shanga", "Suru", "Wasagu/Danko", "Yauri"], 
+            "Kwara":["Asa", "Baruten", "Edu", "Ekiti", "Ifelodun", "Ilorin East", "Ilorin South", "Ilorin West", "Irepodun", "Isin", "Kaiama", "Moro", "Offa", "Oke Ero", "Oyun", "Patigi"],   
+            "Nasarawa":["Akwanga", "Awe", "Doma", "Karu", "Keffi", "Kokona", "Lafia", "Nasarawa", "Nasarawa Egon", "Obi", "Toto", "Wamba"],
+            "Niger": ["Agaie", "Agwara", "Bida", "Borgu", "Bosso", "Chanchaga", "Edati", "Gbako", "Gurara", "Katcha", "Kontagora", "Lapai", "Lavun", "Magama", "Mariga", "Mashegu", "Mokwa", "Munya", "Paikoro", "Rafi", "Rijau", "Shiroro", "Suleja", "Tafa", "Wushishi"],  
+            "Ogun": ["Abeokuta North", "Abeokuta South", "Ado-Odo/Ota", "Ewekoro", "Ifo", "Ijebu East", "Ijebu North", "Ijebu North East", "Ijebu Ode", "Ikenne", "Imeko Afon", "Ipokia", "Obafemi Owode", "Odeda", "Odogbolu", "Ogun Waterside", "Remo North", "Shagamu"],   
+            "Ondo":["Akoko North-East", "Akoko North-West", "Akoko South-West", "Akoko South-East", "Ese-Odo", "Idanre", "Ifedore", "Ilaje", "Ile-Oluji/Okeigbo", "Irele", "Okitipupa", "Ondo East", "Ondo West", "Osogbo", "Ose", "Owo"],   
+            "Osun":["Atakunmosa East", "Atakunmosa West", "Aiyedaade", "Aiyedire", "Boluwaduro", "Boripe", "Ede North", "Ede South", "Egbedore", "Ejigbo", "Ife Central", "Ife East", "Ife North", "Ife South", "Ifedayo", "Ifelodun", "Ila", "Ilesha East", "Ilesha West", "Irepodun", "Irewole", "Isokan", "Iwo", "Obokun", "Odo Otin", "Ola Oluwa", "Olorunda", "Oriade", "Orolu", "Osogbo"],   
+            "Oyo":["Afijio", "Akinyele", "Atiba", "Atisbo", "Egbeda", "Ibadan North", "badan North-East", "Ibadan North-West", "Ibadan South-East", "Ibadan South-West", "Ibarapa Central", "Ibarapa East", "Ibarapa North", "Ido", "Irepo", "Iseyin", "Itesiwaju", "Iwajowa", "Kajola", "Lagelu", "Ogbomosho North", "Ogbomosho South", "Ogo Oluwa", "Oluyole", "Ona Ara", "Orelope", "Ori Ire", "Oyo East", "Oyo West", "Saki East", "Saki West", "Surulere", "Olorunsogo"],           "Plateau":["Barkin Ladi", "Bassa", "Bokkos", "Jos East", "Jos North", "Jos South", "Kanam", "Kanke", "Langtang North", "Langtang South", "Mangu", "Mikang", "Pankshin", "Qua an Pan", "Riyom", "Shendam", "Wase"],
+            "Rivers":["Abua–Odual", "Ahoada East", "Ahoada West", "Akuku-Toru", "Andoni", "Asari-Toru", "Bonny", "Degema", "Eleme", "Emohua", "Etche", "Gokana", "Ikwerre", "Khana", "Obio-Akpor", "Ogba–Egbema–Ndoni", "Ogu–Bolo", "Okrika", "Omuma", "Opobo–Nkoro", "Oyigbo", "Port Harcourt", "Tai"],
+            "Sokoto" :["Binji", "Bodinga", "Dange Shuni", "Gada", "Goronyo", "Gudu", "Gwadabawa", "Illela", "Isa", "Kebbe", "Kware", "Rabah", "Sabon Birni", "Shagari", "Silame", "Sokoto North", "Sokoto South", "Tambuwal", "Tangaza", "Tureta"],
+            "Taraba" :["Ardo-Kola", "Bali", "Donga", "Gashaka", "Gassol", "Ibi", "Jalingo", "Karim Lamido", "Kurmi", "Lau", "Sardauna", "Takum", "Ussa", "Wukari"],
+            "Yobe" :  ["Bade", "Bursari", "Damaturu", "Fika", "Fune", "Geidam", "Gujba", "Gulani", "Jakusko", "Karasuwa", "Machina", "Nangere", "Nguru", "Potiskum", "Tarmuwa", "Yunusari", "Yusufari"],
+            "Zamfara":["Anka", "Bakura", "Birnin Magaji/Kiyaw", "Bungudu", "Gummi", "Gusau", "Kaura Namoda", "Maradun", "Maru", "Shinkafi", "Talata Mafara", "Tsafe", "Zurmi"],
+                  },
+          "Ghana": {
+            "Ahafo Region" :["Asunafo North Municipal", "Asunafo South District", "Asutifi North District", "Asutifi South District", "Tano North Municipal", "Tano South Municipal"],
+            "Ashanti Region" :["Adansi North Municipal", "Adansi South District", "Afigya Kwabre North District", "Afigya Kwabre South District", "Akrofuom District", "Amansie Central District", "Amansie West District", "Atwima Kwanwoma District", "Atwima Mponua District", "Atwima Nwabiagya North Municipal", "Atwima Nwabiagya South Municipal", "Asante Akim Central Municipal", "Asante Akim North Municipal", "Asante Akim South District", "Asokore Mampong Municipal", "Bekwai Municipal", "Bosomtwe District", "Ejisu Municipal", "Kumasi Metropolitan", "Kwabre East Municipal", "Mampong Municipal", "Offinso North Municipal", "Offinso Municipal", "Sekyere Afram Plains District", "Sekyere Central District", "Sekyere Kumawu District", "Sekyere South District", "Suame Municipal", "Bekwai Municipal"],
+            "Bono Region":["Banda District – Banda Ahenkro", "Berekum East Municipal – Berekum", "Berekum West District – Jinijini", "Dormaa Central Municipal – Dormaa Ahenkro", "Dormaa East District – Wamfie", "Dormaa West District – Nkrankwanta", "Jaman North District – Sampa", "Jaman South Municipal – Drobo", "Sunyani Municipal – Sunyani", "Sunyani West District – Odumase", "Tain District – Nsawkaw", "Wenchi Municipal – Wenchi"],
+            "Bono East Region":["Atebubu-Amantin", "Kintampo North", "Kintampo South", "Nkoranza North", "Nkoranza South", "Pru", "Sene East", "Sene West"],
+            "Central Region":["Abura-Asebu-Kwamankese District", "Agona East District", "Agona West Municipal", "Ajumako-Enyan-Esiam District", "Asikuma-Odoben-Brakwa District", "Assin Central Municipal", "Assin North Municipal", "Assin South District", "Cape Coast Metropolitan", "Effutu Municipal", "Ekumfi District", "Evalue-Ajomoro-Gwira ", "District", "Gomoa East District", "Gomoa West District", "Komenda-Edina-Eguafo-Abirem Municipal", "Mfantsiman ", "Municipal", "Twifo-Ati-Morkwa District", "Twifo-Hemang-Lower Denkyira District"],
+            "Eastern Region":["Akuapim North Municipal", "Akuapim South Municipal", "Akwapim South District", "Akyemansa District", "Birim Central Municipal", "Birim South District", "Denkyembour District", "East Akim Municipal", "Fanteakwa District", "Kwahu Afram Plains North District", "Kwahu West Municipal", "New Juaben Municipal", "Nsawam Adoagyiri Municipal", "Upper Manya District", "West Akim Municipal", "West Akyem District", "Yilo Krobo Municipal"],
+            "Greater Accra Region":["Accra Metropolitan", "Tema Metropolitan", "Adentan Municipal", "Ashaiman Municipal", "Kpone Katamanso Municipal", "Ga East Municipal", "Ga West Municipal", "Ga South Municipal", "La Dade Kotopon Municipal", "La Nkwantanang Madina Municipal", "Ledzokuku Municipal", "Ningo Prampram District", "Shai Osudoku District", "La Dadekotopon Municipal"],
+            "North East Region":["East Mamprusi Municipal", "West Mamprusi Municipal", "Bunkpurugu-Nakpanduri District", "Chereponi District", "Mamprugu Moagduri District", "Yunyoo-Nasuan District"],
+            "Northern Region":["Gushegu Municipal", "Karaga District", "Kpandai District", "Kumbungu District", "Mion District", "Nanumba North Municipal", "Nanumba South District", "Nanton District", "Saboba District", "Sagnarigu Municipal", "Savelugu Municipal", "Tamale Metropolitan", "Tatale Sangule District", "Tolon District", "Yendi Municipal", "Zabzugu District"],
+            "Oti Region":["Biakoye District", "Jasikan District", "Krachi East Municipal District", "Krachi Nchumuru District", "Krachi West District", "Nkwanta North District", "Nkwanta South Municipal District", "Guan District"],
+            "Savannah Region":["Bole District", "Central Gonja District", "East Gonja Municipal", "North East Gonja District", "North Gonja District", "Sawla-Tuna-Kalba District", "West Gonja Municipal"],
+            "Upper East Region":["Bawku Municipal", "Bawku West District", "Binduri District", "Bolgatanga Municipal", "Bongo District", "Garu District", "Kassena-Nankana Municipal", "Kassena-Nankana West District", "Nabdam District", "Pusiga District", "Talensi District", "Tempane District"],
+            "Upper West Region":["Daffiama-Bussie-Issa", "District", "Jirapa Municipal District", "Lambussie-Karni District", "Lawra Municipal District", "Nadowli-Kaleo District", "Nandom Municipal District", "Sissala East Municipal District", "Sissala West District", "Wa East District", "Wa Municipal District", "Wa West District"],
+            "Volta Region":["Adaklu District", "Afadzato South District", "Agotime Ziope District", "Akatsi North District", "Akatsi South District", "Anloga District", "Central Tongu District", "Ho Municipal District", "Ho West District", "Hohoe Municipal District", "Keta Municipal District", "Ketu North Municipal District", "Ketu South Municipal District", "Kpando Municipal District", "North Dayi District", "North Tongu District", "South Dayi District", "South Tongu District"],
+            "Western Region":["Ahanta West Municipal", "Amenfi Central District", "Amenfi East Municipal", "Amenfi West Municipal", "Effia-Kwesimintsim Municipal", "Ellembelle District", "Jomoro Municipal", "Mpohor District", "Nzema East Municipal", "Prestea-Huni Valley Municipal", "Sekondi-Takoradi Metropolitan", "Shama District", "Tarkwa-Nsuaem Municipal", "Wassa East District"],
+            "Western North Region" :["Bia East District", "Bia West District", "Aowin Municipal District", "Bibiani–Anhwiaso–Bekwai Municipal District", "Juaboso District", "Sefwi Akontombra District", "Sefwi Wiawso Municipal District"],
+          },
+          "Kenya": {
+            "Nairobi": ["Westlands", "Kasarani", "Langata", "Embakasi"],
+            "Mombasa": ["Kisauni", "Likoni", "Mvita", "Nyali"],
+          },
+          "China":{
+
+          },
+          "United State":{
+
+          },
+          "United kingdom":{
+
+          },
+          "France":{
+
+          },
+          "Egypt":{
+
+          },
+          "Mexico":{
+
+          },
+          "Agentina":{
+
+          },
+          "Moroca":{
+
+          },
+          "Japan":{
+
+          },
+          "England":{
+
+          },
+          "Spain":{
+
+          },
+          "Russia":{
+
+          },
+        };
+
+        this.selectedCountry = "";
+        this.selectedState = "";
+        this.highlightedIndex = -1;
+        this.initElements();
+        this.setupEventListeners();
+      }
+
+      initElements() {
+        this.countryInput = document.getElementById('country');
+        this.stateInput = document.getElementById('state');
+        this.lgaInput = document.getElementById('lga');
+        this.countryList = document.getElementById('countryList');
+        this.stateList = document.getElementById('stateList');
+        this.lgaList = document.getElementById('lgaList');
+        this.countryStatus = document.getElementById('country-status');
+        this.stateStatus = document.getElementById('state-status');
+        this.lgaStatus = document.getElementById('lga-status');
+        this.stepCountry = document.getElementById('step-country');
+        this.stepState = document.getElementById('step-state');
+        this.stepLga = document.getElementById('step-lga');
+      }
+
+      setupEventListeners() {
+        this.countryInput.addEventListener('input', () => this.filterCountries());
+        this.countryInput.addEventListener('keydown', (e) => this.handleKeyNavigation(e, 'country'));
+        this.countryInput.addEventListener('focus', () => {
+          this.filterCountries();
+          this.showSuggestionBox(this.countryList);
+        });
+        
+        this.stateInput.addEventListener('input', () => this.filterStates());
+        this.stateInput.addEventListener('keydown', (e) => this.handleKeyNavigation(e, 'state'));
+        this.stateInput.addEventListener('focus', () => {
+          if (this.selectedCountry) {
+            this.filterStates();
+            this.showSuggestionBox(this.stateList);
+          }
+        });
+        
+        this.lgaInput.addEventListener('input', () => this.filterLGAs());
+        this.lgaInput.addEventListener('keydown', (e) => this.handleKeyNavigation(e, 'lga'));
+        this.lgaInput.addEventListener('focus', () => {
+          if (this.selectedState) {
+            this.filterLGAs();
+            this.showSuggestionBox(this.lgaList);
+          }
+        });
+        
+        document.addEventListener('click', (e) => {
+          if (!e.target.closest('.input-container')) {
+            this.hideAllSuggestions();
+          }
+        });
+      }
+
+      showSuggestionBox(element) {
+        this.hideAllSuggestions();
+        element.classList.add('visible');
+      }
+
+      filterCountries() {
+        const input = this.countryInput.value.trim().toLowerCase();
+        this.countryList.innerHTML = '';
+        this.highlightedIndex = -1;
+
+        if (!input) {
+          this.countryList.classList.remove('visible');
+          return;
+        }
+
+        const matches = Object.keys(this.data)
+          .filter(country => country.toLowerCase().includes(input))
+          .slice(0, 10);
+
+        if (matches.length === 0) {
+          this.countryList.innerHTML = '<div class="loading">No matching countries found</div>';
+          this.countryList.classList.add('visible');
+          return;
+        }
+
+        matches.forEach((country, index) => {
+          const div = document.createElement('div');
+          div.className = 'suggestion-item';
+          
+          // In a real app, you would use actual flag images here
+          const flag = document.createElement('div');
+          flag.className = 'flag';
+          flag.style.backgroundColor = this.getRandomColor();
+          div.appendChild(flag);
+          
+          div.appendChild(document.createTextNode(country));
+          div.addEventListener('click', () => this.selectCountry(country));
+          this.countryList.appendChild(div);
+        });
+
+        this.countryList.classList.add('visible');
+      }
+
+      filterStates() {
+        const input = this.stateInput.value.trim().toLowerCase();
+        this.stateList.innerHTML = '';
+        this.highlightedIndex = -1;
+
+        if (!this.selectedCountry) {
+          this.stateList.classList.remove('visible');
+          return;
+        }
+
+        const states = Object.keys(this.data[this.selectedCountry]);
+        const matches = states.filter(state => state.toLowerCase().includes(input));
+
+        if (matches.length === 0) {
+          this.stateList.innerHTML = '<div class="loading">No matching states found</div>';
+          this.stateList.classList.add('visible');
+          return;
+        }
+
+        matches.forEach((state, index) => {
+          const div = document.createElement('div');
+          div.className = 'suggestion-item';
+          div.textContent = state;
+          div.addEventListener('click', () => this.selectState(state));
+          this.stateList.appendChild(div);
+        });
+
+        this.stateList.classList.add('visible');
+      }
+
+      filterLGAs() {
+        const input = this.lgaInput.value.trim().toLowerCase();
+        this.lgaList.innerHTML = '';
+        this.highlightedIndex = -1;
+
+        if (!this.selectedCountry || !this.selectedState) {
+          this.lgaList.classList.remove('visible');
+          return;
+        }
+
+        const lgas = this.data[this.selectedCountry][this.selectedState];
+        const matches = lgas.filter(lga => lga.toLowerCase().includes(input));
+
+        if (matches.length === 0) {
+          this.lgaList.innerHTML = '<div class="loading">No matching LGAs found</div>';
+          this.lgaList.classList.add('visible');
+          return;
+        }
+
+        matches.forEach((lga, index) => {
+          const div = document.createElement('div');
+          div.className = 'suggestion-item';
+          div.textContent = lga;
+          div.addEventListener('click', () => this.selectLGA(lga));
+          this.lgaList.appendChild(div);
+        });
+
+        this.lgaList.classList.add('visible');
+      }
+
+      selectCountry(country) {
+        this.selectedCountry = country;
+        this.countryInput.value = country;
+        this.countryList.classList.remove('visible');
+        
+        this.stateInput.disabled = false;
+        this.stateInput.placeholder = "Start typing a state...";
+        this.stateInput.value = "";
+        this.stateInput.focus();
+        
+        this.lgaInput.disabled = true;
+        this.lgaInput.placeholder = "Select state first";
+        this.lgaInput.value = "";
+        
+        this.stateList.innerHTML = '';
+        this.lgaList.innerHTML = '';
+        
+        // Update UI status
+        this.countryStatus.classList.add('active');
+        this.stepCountry.classList.add('completed');
+        this.stepState.classList.add('active');
+        
+        // Animate the state input
+        this.stateInput.style.animation = 'none';
+        setTimeout(() => {
+          this.stateInput.style.animation = 'pulse 1s';
+        }, 10);
+      }
+
+      selectState(state) {
+        this.selectedState = state;
+        this.stateInput.value = state;
+        this.stateList.classList.remove('visible');
+        
+        this.lgaInput.disabled = false;
+        this.lgaInput.placeholder = "Start typing an LGA...";
+        this.lgaInput.value = "";
+        this.lgaInput.focus();
+        
+        this.lgaList.innerHTML = '';
+        
+        // Update UI status
+        this.stateStatus.classList.add('active');
+        this.stepState.classList.add('completed');
+        this.stepLga.classList.add('active');
+        
+        // Animate the LGA input
+        this.lgaInput.style.animation = 'none';
+        setTimeout(() => {
+          this.lgaInput.style.animation = 'pulse 1s';
+        }, 10);
+      }
+
+      selectLGA(lga) {
+        this.lgaInput.value = lga;
+        this.lgaList.classList.remove('visible');
+        
+        // Update UI status
+        this.lgaStatus.classList.add('active');
+        this.stepLga.classList.add('completed');
+      }
+
+      handleKeyNavigation(e, type) {
+        const list = type === 'country' ? this.countryList : 
+                    type === 'state' ? this.stateList : this.lgaList;
+        const items = list.querySelectorAll('.suggestion-item');
+        
+        if (e.key === 'ArrowDown') {
+          e.preventDefault();
+          this.highlightedIndex = Math.min(this.highlightedIndex + 1, items.length - 1);
+          this.updateHighlightedItem(items);
+        } else if (e.key === 'ArrowUp') {
+          e.preventDefault();
+          this.highlightedIndex = Math.max(this.highlightedIndex - 1, -1);
+          this.updateHighlightedItem(items);
+        } else if (e.key === 'Enter' && this.highlightedIndex >= 0) {
+          e.preventDefault();
+          items[this.highlightedIndex].click();
+        } else if (e.key === 'Escape') {
+          list.classList.remove('visible');
+        }
+      }
+
+      updateHighlightedItem(items) {
+        items.forEach((item, index) => {
+          item.classList.toggle('highlighted', index === this.highlightedIndex);
+          if (index === this.highlightedIndex) {
+            item.scrollIntoView({ block: 'nearest' });
+          }
+        });
+      }
+
+      hideAllSuggestions() {
+        this.countryList.classList.remove('visible');
+        this.stateList.classList.remove('visible');
+        this.lgaList.classList.remove('visible');
+      }
+      
+      getRandomColor() {
+        const colors = ['#f87171', '#60a5fa', '#34d399', '#fbbf24', '#a78bfa', '#f472b6'];
+        return colors[Math.floor(Math.random() * colors.length)];
+      }
+    }
+
+    // Initialize the application
+    document.addEventListener('DOMContentLoaded', () => {
+      new LocationFinder();
+    });
+  </script>
+</body>
+</html>
+
+</body>
+</html>
